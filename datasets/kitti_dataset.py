@@ -50,7 +50,21 @@ class KITTIDataset(MonoDataset):
         color = self.loader(self.get_image_path(folder, frame_index, side))
 
         if do_flip:
-            color = color.transpose(pil.FLIP_LEFT_RIGHT)
+            color = color.transpose(pil.FLIP_LEFT_RIGHT) # flip the left to right, and right to left by 90 degrees
+
+        ((r_min_value, r_max_value), (g_min_value, g_max_value), (b_min_value, b_max_value)) = color.getextrema() 
+        with open('color_inputs.txt', 'a') as fp:
+            fp.write("\nAll: ")
+            fp.write(','.join('{} {}'.format(min([r_min_value, g_min_value, b_min_value]), max([r_max_value, g_max_value, b_max_value]))))
+            fp.write("\nR: ")
+            fp.write('-'.join('{} {}'.format(r_min_value, r_max_value)))
+            fp.write("\nG: ")
+            fp.write('-'.join('{} {}'.format(g_min_value, g_max_value)))
+            fp.write("\nB: ")
+            fp.write('-'.join('{} {}'.format(b_min_value, b_max_value)))
+
+        if int(frame_index)%100 == 0:
+            color.save("color0.jpg")
 
         return color
 
@@ -76,11 +90,28 @@ class KITTIRAWDataset(KITTIDataset):
             "velodyne_points/data/{:010d}.bin".format(int(frame_index)))
 
         depth_gt = generate_depth_map(calib_path, velo_filename, self.side_map[side])
+        size0 = depth_gt.size
+        dim0 = depth_gt.ndim
+
         depth_gt = skimage.transform.resize(
             depth_gt, self.full_res_shape[::-1], order=0, preserve_range=True, mode='constant')
+        size1 = depth_gt.size
+        dim1 = depth_gt.ndim
 
         if do_flip:
             depth_gt = np.fliplr(depth_gt)
+
+        with open('depths_inputs.txt', 'a') as fp:
+            fp.write("\nmin and max: ")
+            fp.write(','.join('{} {} {}'.format(depth_gt.min(), depth_gt.max(), self.full_res_shape[::-1])))
+            fp.write("\nold size and shape: ")
+            fp.write('-'.join('{} {}'.format(size0, dim0)))
+            fp.write("\nnew size and shape: ")
+            fp.write('-'.join('{} {}'.format(size1, dim1)))
+
+        if int(frame_index)%100 == 0:
+            import matplotlib.pyplot as plt
+            plt.imsave("depths0.jpg", depth_gt)
 
         return depth_gt
 
@@ -130,5 +161,8 @@ class KITTIDepthDataset(KITTIDataset):
 
         if do_flip:
             depth_gt = np.fliplr(depth_gt)
+
+        with open('depths_inputs2.txt', 'a') as fp:
+            fp.write(','.join('{} {} {}'.format(depth_gt.min(), depth_gt.max(), self.full_res_shape[::-1])))
 
         return depth_gt

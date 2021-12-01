@@ -145,6 +145,8 @@ class MonoDataset(data.Dataset):
 
         if len(line) == 3:
             frame_index = int(line[1])
+        elif len(line) == 2: # added
+            frame_index = int(line[1])
         else:
             frame_index = 0
 
@@ -173,8 +175,8 @@ class MonoDataset(data.Dataset):
             inputs[("inv_K", scale)] = torch.from_numpy(inv_K)
 
         if do_color_aug:
-            color_aug = transforms.ColorJitter.get_params(
-                self.brightness, self.contrast, self.saturation, self.hue)
+            color_aug = transforms.ColorJitter(
+                brightness=self.brightness, contrast=self.contrast, saturation=self.saturation, hue=self.hue)
         else:
             color_aug = (lambda x: x)
 

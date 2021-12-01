@@ -31,17 +31,7 @@ def parse_args():
     parser.add_argument('--image_path', type=str,
                         help='path to a test image or folder of images', required=True)
     parser.add_argument('--model_name', type=str,
-                        help='name of a pretrained model to use',
-                        choices=[
-                            "mono_640x192",
-                            "stereo_640x192",
-                            "mono+stereo_640x192",
-                            "mono_no_pt_640x192",
-                            "stereo_no_pt_640x192",
-                            "mono+stereo_no_pt_640x192",
-                            "mono_1024x320",
-                            "stereo_1024x320",
-                            "mono+stereo_1024x320"])
+                        help='name of a pretrained model to use',)
     parser.add_argument('--ext', type=str,
                         help='image extension to search for in folder', default="jpg")
     parser.add_argument("--no_cuda",
@@ -65,6 +55,7 @@ def test_simple(args):
         device = torch.device("cuda")
     else:
         device = torch.device("cpu")
+    print(f'device: {device}')
 
     if args.pred_metric_depth and "stereo" not in args.model_name:
         print("Warning: The --pred_metric_depth flag only makes sense for stereo-trained KITTI "
@@ -80,6 +71,7 @@ def test_simple(args):
     print("   Loading pretrained encoder")
     encoder = networks.ResnetEncoder(18, False)
     loaded_dict_enc = torch.load(encoder_path, map_location=device)
+
 
     # extract the height and width of image that this model was trained with
     feed_height = loaded_dict_enc['height']
